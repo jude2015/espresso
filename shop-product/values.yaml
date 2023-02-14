@@ -113,7 +113,7 @@ secret:
 
 postgres:
     username: "postgress"
-    password: "Iyw8B2BCWL8Cs9#b&0v%Fgi7h"
+    password: "b2c4ciQhR2Q1QWhOMWx3N2lAQ2xLdjNuYXBoblhRMXJmITc="
     database: "espresso"
 
   
