@@ -112,8 +112,8 @@ secret:
   type: Opaque
 
 postgres:
-    username: ""
-    password: ""
-    database: ""
+    username: "postgress"
+    password: "bDUmbElQNDl1cDlUWTRTWUBnV2lKQEBZbw=="
+    database: "espresso"
 
   
