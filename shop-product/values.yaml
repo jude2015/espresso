@@ -111,6 +111,9 @@ PodDisruptionBudget:
 secret:
   type: Opaque
 
-
+postgres:
+    username: ""
+    password: ""
+    database: ""
 
   
