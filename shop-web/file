@@ -1,0 +1,134 @@
+---
+# Source: espresso/templates/pdb.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: espresso-shop-web
+  labels:
+    app: espresso-shop-web
+spec:
+  maxUnavailable: 2
+  selector:
+    matchLabels:
+        app: espresso-shop-web
+---
+# Source: espresso/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: espresso-shop-web
+  labels:
+    app: espresso-shop-web
+---
+# Source: espresso/templates/secret.yaml
+apiVersion: v1
+kind: Secret
+metadata:
+  name: espresso-shop-web
+type: Opaque
+data:
+    authKey: authKey
+    authkeyValue: WmxzOHV3Yk1wcEs3M3RyblluVTdvbF4jcw==
+    password: NjF4JDdIKnpnbjAyRzZhVjk2bXllTmI2Sg==
+---
+# Source: espresso/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: espresso-shop-web-svc
+  labels:
+      app: espresso-shop-web
+
+spec:
+  type: NodePort
+  ports:
+    - port: 8090
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: espresso-shop-web
+---
+# Source: espresso/templates/deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: espresso-shop-web
+  labels:
+    app: espresso-shop-web
+    version: v1
+spec:
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3        
+      maxUnavailable: 1
+  selector:
+    matchLabels:
+        app: espresso-shop-web
+  template:
+    metadata:
+      labels:
+        app: espresso-shop-web
+        version: v1
+    spec:
+      serviceAccountName: espresso-shop-web
+      securityContext:
+        {}
+      containers:
+        - name: espresso
+          securityContext:
+            {}
+          image: "devopseasylearning2021/s3-project01-espresso-shop:v1.0.0"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+          - secretRef:
+              name: espresso-shop-web
+          env:
+            - name: ProductCatalogURL 
+              value: http://espresso-shop-product-catalog-svc:8091 
+            - name: ReviewsURL 
+              value: http://espresso-shop-review-svc:8092 
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: espresso/templates/hpa.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: espresso-shop-web
+  labels:
+    app: espresso-shop-web
+
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: espresso-shop-web
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60

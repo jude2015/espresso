@@ -1,0 +1,223 @@
+---
+# Source: espresso/templates/pdb-v1.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: espresso-shop-review-v1
+  labels:
+    app: espresso-shop-reviews
+spec:
+  maxUnavailable: 2
+  selector:
+    matchLabels:
+        app: espresso-shop-reviews
+---
+# Source: espresso/templates/pdb-v2.yaml
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: espresso-shop-review-v2
+  labels:
+    app: espresso-shop-reviews
+spec:
+  maxUnavailable: 2
+  selector:
+    matchLabels:
+        app: espresso-shop-reviews
+---
+# Source: espresso/templates/serviceaccount-v1.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: espresso-shop-review-v1
+  labels:
+    app: espresso-shop-reviews
+---
+# Source: espresso/templates/serviceaccount-v2.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: espresso-shop-review-v2
+  labels:
+    app: espresso-shop-reviews
+---
+# Source: espresso/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: espresso-shop-reviews-svc
+  labels:
+    app: espresso-shop-reviews
+    version1: v1
+    version2: v2
+spec:
+  type: NodePort
+  ports:
+    - port: 8092
+      targetPort: 80
+      protocol: TCP
+      name: http
+  selector:
+    app: espresso-shop-reviews
+---
+# Source: espresso/templates/deployment-v1.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: espresso-shop-review-v1
+  labels:
+    app: espresso-shop-reviews
+    # version: v1
+spec:
+  selector:
+    matchLabels:
+        app: espresso-shop-reviews
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+          app: espresso-shop-reviews
+          version: v1
+    spec:
+      serviceAccountName: espresso-shop-review-v1
+      securityContext:
+        {}
+      containers:
+        - name: espresso
+          securityContext:
+            {}
+          image: "devopseasylearning2021/s3-project01-espresso-shop-review:v1.0.0"
+          imagePullPolicy: IfNotPresent
+          envFrom:
+          - secretRef:
+              name: espresso-shop-reviews
+          env:
+            - name: SERVICE_VERSION
+              value: v1
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: espresso/templates/deployment-v2.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: espresso-shop-review-v2
+  labels:
+    app: espresso-shop-reviews
+    # version: v2
+spec:
+  selector:
+    matchLabels:
+        app: espresso-shop-reviews
+  minReadySeconds: 5
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 3
+      maxUnavailable: 1
+  template:
+    metadata:
+      labels:
+        app: espresso-shop-reviews
+        version: v2
+    spec:
+      serviceAccountName: espresso-shop-review-v2
+      securityContext:
+        {}
+      containers:
+        - name: espresso
+          securityContext:
+            {}
+          image: "devopseasylearning2021/s3-project01-espresso-shop-review:v1.0.0"
+          imagePullPolicy: IfNotPresent
+          # envFrom:
+          # - secretRef:
+          #     name: espresso-shop-reviews 
+          env:
+            - name: SERVICE_VERSION
+              value: v2
+          ports:
+            - name: http
+              containerPort: 80
+              protocol: TCP
+          # livenessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          # readinessProbe:
+          #   httpGet:
+          #     path: /
+          #     port: http
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+            requests:
+              cpu: 100m
+              memory: 128Mi
+---
+# Source: espresso/templates/hpa-v1.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: espresso-shop-reviews
+  labels:
+    app: espresso-shop-review-v1
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: espresso-shop-review-v1
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60
+---
+# Source: espresso/templates/hpa-v2.yaml
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: espresso-shop-reviews
+  labels:
+    app: espresso-shop-review-v2
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: espresso-shop-review-v2
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 60

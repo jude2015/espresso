@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.app_name }}-svc
+  labels:
+    app: {{ .Values.app_name }}
+    version1: {{ .Values.labels.version1 }}
+    version2: {{ .Values.labels.version2 }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetport }}
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ .Values.app_name }}
+
+
+
