@@ -14,7 +14,7 @@ imagePullSecrets: []
 # - name: "image-pull-secret"
 
 ## replicas number for each component
-replicas: 3
+replicas: 2
 
 ## Customize the statefulset pod management policy:
 ## ref: https://kubernetes.io/docs/concepts/workloads/controllers/statefulset/#pod-management-policies
@@ -285,10 +285,10 @@ redis:
 
   resources: {}
   #  requests:
-  #    memory: 100Mi
-  #    cpu: 50m
+  #    memory: 200Mi
+  #    cpu: 100m
   #  limits:
-  #    memory: 350Mi
+  #    memory: 400Mi
 
   ## Container lifecycle hooks
   ## Ref: https://kubernetes.io/docs/concepts/containers/container-lifecycle-hooks/
@@ -329,7 +329,7 @@ sentinel:
   ## Configures sentinel with AUTH (requirepass params)
   auth: false
 
-  # password: "61x$7H*zgn02G6aV96myeNb6J"
+  # password: "NjF4JDdIKnpnbjAyRzZhVjk2bXllTmI2Sg=="
 
   ## Use existing secret containing key `authKey` (ignores sentinel.password)
   # existingSecret: sentinel-secret
@@ -370,7 +370,7 @@ sentinel:
   # customConfig: |-
     # Define configuration here
 
-  resources:
+  resources: 
     requests:
       memory: 200Mi
       cpu: 100m
